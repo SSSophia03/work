@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广东图特精密五金科技股份有限公司 - 组织架构树状图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #ffffff;
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+        #container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            background: #ffffff;
+            cursor: grab;
+        }
+        #container:active {
+            cursor: grabbing;
+        }
+        #tree-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            padding: 60px;
+        }
+        .tree {
+            display: flex;
+            justify-content: center;
+        }
+        .tree ul {
+            padding-top: 30px;
+            position: relative;
+            transition: all 0.5s;
+            display: flex;
+            justify-content: center;
+        }
+        .tree li {
+            float: left;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 30px 10px 0 10px;
+            transition: all 0.5s;
+        }
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #999;
+            width: 50%;
+            height: 30px;
+        }
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #999;
+        }
+        .tree li:only-child::after, .tree li:only-child::before {
+            display: none;
+        }
+        .tree li:only-child {
+            padding-top: 0;
+        }
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
+        }
+        .tree li:last-child::before {
+            border-right: 2px solid #999;
+            border-radius: 0 5px 0 0;
+        }
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+        }
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #999;
+            width: 0;
+            height: 30px;
+        }
+        .node {
+            display: inline-block;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+            background: #fff;
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 1;
+        }
+        .node:hover {
+            background: #4a90e2;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74,144,226,0.3);
+        }
+        .node.root {
+            border-color: #e74c3c;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 14px 24px;
+        }
+        .node.root:hover {
+            background: #e74c3c;
+        }
+        .node.level-1 {
+            border-color: #f39c12;
+            font-weight: bold;
+        }
+        .node.level-1:hover {
+            background: #f39c12;
+        }
+        .node.level-2 {
+            border-color: #27ae60;
+        }
+        .node.level-2:hover {
+            background: #27ae60;
+        }
+        .node.level-3 {
+            border-color: #8e44ad;
+        }
+        .node.level-3:hover {
+            background: #8e44ad;
+        }
+        .node.level-4 {
+            border-color: #16a085;
+            font-size: 12px;
+        }
+        .node.level-4:hover {
+            background: #16a085;
+        }
+        .node.collapsed::after {
+            content: '+';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 18px;
+            background: #4a90e2;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            line-height: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .node .dept-code {
+            font-size: 10px;
+            color: #999;
+            margin-top: 2px;
+            display: block;
+        }
+        .node:hover .dept-code {
+            color: rgba(255,255,255,0.8);
+        }
+        .hidden {
+            display: none !important;
+        }
+        .collapsed + ul {
+            display: none;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+        }
+        #controls button {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: #fff;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #controls button:hover {
+            background: #4a90e2;
+            color: #fff;
+        }
+        #title {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            z-index: 1000;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        #legend {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 1000;
+            font-size: 12px;
+        }
+        #legend .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        #legend .legend-item:last-child {
+            margin-bottom: 0;
+        }
+        #legend .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 8px;
+            border: 2px solid;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">广东图特精密五金科技股份有限公司 - 组织架构图</div>
+    <div id="legend">
+        <div class="legend-item"><div class="color-box" style="border-color:#e74c3c;"></div>根节点</div>
+        <div class="legend-item"><div class="color-box" style="border-color:#f39c12;"></div>一级部门</div>
+        <div class="legend-item"><div class="color-box" style="border-color:#27ae60;"></div>二级部门</div>
+        <div class="legend-item"><div class="color-box" style="border-color:#8e44ad;"></div>三级部门</div>
+        <div class="legend-item"><div class="color-box" style="border-color:#16a085;"></div>四级部门</div>
+    </div>
+    <div id="container">
+        <div id="tree-wrapper">
+            <div class="tree" id="tree-root"></div>
+        </div>
+    </div>
+    <div id="controls">
+        <button onclick="zoomIn()" title="放大">+</button>
+        <button onclick="zoomOut()" title="缩小">−</button>
+        <button onclick="resetView()" title="重置">⟲</button>
+        <button onclick="expandAll()" title="展开全部">⊕</button>
+        <button onclick="collapseAll()" title="折叠全部">⊖</button>
+    </div>
+
+    <script>
+        const deptData = [
+            {code:"0",name:"广东图特精密五金科技股份有限公司",level:0,parentCode:""},
+            {code:"101",name:"董事会办公室",level:1,parentCode:"0"},
+            {code:"103",name:"海外营销中心",level:1,parentCode:"0"},
+            {code:"10301",name:"海外销售部",level:2,parentCode:"103"},
+            {code:"10302",name:"海外商务部",level:2,parentCode:"103"},
+            {code:"1030202",name:"物流与关务",level:3,parentCode:"10302"},
+            {code:"104",name:"经销业务部",level:2,parentCode:"119"},
+            {code:"10401",name:"广东工业二区",level:3,parentCode:"11902"},
+            {code:"10402",name:"广东工业一区",level:3,parentCode:"11902"},
+            {code:"10403",name:"华北经销大区",level:3,parentCode:"104"},
+            {code:"10404",name:"工程与滑轮业务部",level:2,parentCode:"119"},
+            {code:"10406",name:"待分配组",level:2,parentCode:"119"},
+            {code:"105",name:"商务组",level:3,parentCode:"11901"},
+            {code:"106",name:"品牌与市场管理部",level:2,parentCode:"119"},
+            {code:"107",name:"研发中心",level:1,parentCode:"0"},
+            {code:"10702",name:"滑轨开发组",level:3,parentCode:"10710"},
+            {code:"10703",name:"铰链开发组",level:3,parentCode:"10710"},
+            {code:"10704",name:"智能技术开发",level:2,parentCode:"107"},
+            {code:"10706",name:"模具设计组",level:3,parentCode:"10714"},
+            {code:"10707",name:"样品组",level:3,parentCode:"10709"},
+            {code:"108",name:"制造交付中心",level:1,parentCode:"0"},
+            {code:"10801",name:"PC组",level:3,parentCode:"118"},
+            {code:"10802",name:"设备自动化部",level:2,parentCode:"108"},
+            {code:"1080201",name:"自动化组",level:3,parentCode:"10802"},
+            {code:"1080203",name:"设备组",level:3,parentCode:"10802"},
+            {code:"1080301",name:"铰链模具维修车间",level:4,parentCode:"108106"},
+            {code:"1080302",name:"模具制作车间",level:3,parentCode:"10714"},
+            {code:"10804",name:"仓储组",level:3,parentCode:"118"},
+            {code:"10805",name:"铰链工厂",level:2,parentCode:"108"},
+            {code:"1080501",name:"安装一车间",level:3,parentCode:"10805"},
+            {code:"1080502",name:"安装二车间",level:3,parentCode:"10805"},
+            {code:"1080503",name:"安装三车间",level:3,parentCode:"10805"},
+            {code:"1080504",name:"冲压车间",level:3,parentCode:"10805"},
+            {code:"1080505",name:"包装车间",level:3,parentCode:"10805"},
+            {code:"1080506",name:"注塑车间",level:3,parentCode:"121"},
+            {code:"10811",name:"滑轮系统工厂",level:2,parentCode:"108"},
+            {code:"1080508",name:"阻尼器车间",level:3,parentCode:"121"},
+            {code:"1080509",name:"弹簧车间",level:3,parentCode:"121"},
+            {code:"1080703",name:"收纳装配车间",level:3,parentCode:"10807"},
+            {code:"10806",name:"滑轨工厂",level:2,parentCode:"108"},
+            {code:"1080601",name:"辊压车间",level:3,parentCode:"10806"},
+            {code:"1080602",name:"隐藏轨车间",level:3,parentCode:"10806"},
+            {code:"10807",name:"收纳工厂",level:2,parentCode:"108"},
+            {code:"109",name:"品质管理部",level:1,parentCode:"0"},
+            {code:"10901",name:"体系与改进",level:2,parentCode:"109"},
+            {code:"10902",name:"测试评价",level:2,parentCode:"109"},
+            {code:"10904",name:"IQC来料检",level:3,parentCode:"10908"},
+            {code:"10906",name:"铰链品质",level:3,parentCode:"10908"},
+            {code:"110",name:"供应链管理部",level:1,parentCode:"0"},
+            {code:"111",name:"财务中心",level:1,parentCode:"0"},
+            {code:"11101",name:"预算分析",level:2,parentCode:"111"},
+            {code:"11102",name:"核算管理",level:2,parentCode:"111"},
+            {code:"11103",name:"税务管理",level:2,parentCode:"111"},
+            {code:"11104",name:"资金管理",level:2,parentCode:"111"},
+            {code:"112",name:"运营与人资中心",level:1,parentCode:"0"},
+            {code:"11201",name:"招聘与配置",level:2,parentCode:"112"},
+            {code:"11202",name:"培训与发展",level:2,parentCode:"112"},
+            {code:"11203",name:"绩效与薪酬",level:2,parentCode:"112"},
+            {code:"114",name:"信息管理部",level:1,parentCode:"0"},
+            {code:"115",name:"行政与后勤",level:2,parentCode:"112"},
+            {code:"11501",name:"清洁组",level:4,parentCode:"11505"},
+            {code:"11503",name:"保安组",level:4,parentCode:"11505"},
+            {code:"10709",name:"技术管理部",level:2,parentCode:"107"},
+            {code:"10405",name:"华东经销大区",level:3,parentCode:"104"},
+            {code:"116",name:"HRBP组",level:3,parentCode:"11901"},
+            {code:"118",name:"交付管理部",level:2,parentCode:"108"},
+            {code:"119",name:"国内营销中心",level:1,parentCode:"0"},
+            {code:"120",name:"审计监察部",level:1,parentCode:"0"},
+            {code:"10710",name:"基础五金研发部",level:2,parentCode:"107"},
+            {code:"1070701",name:"样板组",level:4,parentCode:"10707"},
+            {code:"1070702",name:"加工组",level:4,parentCode:"10707"},
+            {code:"1070901",name:"BOM组",level:3,parentCode:"10709"},
+            {code:"1070902",name:"包装设计组",level:3,parentCode:"10709"},
+            {code:"1070903",name:"项目管理组",level:3,parentCode:"10709"},
+            {code:"11504",name:"安全环保",level:3,parentCode:"115"},
+            {code:"11505",name:"行政后勤",level:3,parentCode:"115"},
+            {code:"10407",name:"华东工业大区",level:3,parentCode:"11902"},
+            {code:"10408",name:"华北工业大区",level:3,parentCode:"11902"},
+            {code:"10409",name:"华南经销大区",level:3,parentCode:"104"},
+            {code:"10410",name:"西部工业大区",level:3,parentCode:"11902"},
+            {code:"10810",name:"工程技术部",level:2,parentCode:"108"},
+            {code:"1080701",name:"收纳冲压车间",level:3,parentCode:"10807"},
+            {code:"1080603",name:"骑马抽车间",level:3,parentCode:"10806"},
+            {code:"1080607",name:"滑轨模具维修车间",level:4,parentCode:"108106"},
+            {code:"10304",name:"海外市场部",level:2,parentCode:"103"},
+            {code:"10305",name:"综合管理部",level:2,parentCode:"103"},
+            {code:"1030201",name:"商务跟单",level:3,parentCode:"10302"},
+            {code:"1030101",name:"亚洲区",level:3,parentCode:"10301"},
+            {code:"1030102",name:"东欧区",level:3,parentCode:"10301"},
+            {code:"1030103",name:"西欧区",level:3,parentCode:"10301"},
+            {code:"1030104",name:"美洲区",level:3,parentCode:"10301"},
+            {code:"1030105",name:"中东非区",level:3,parentCode:"10301"},
+            {code:"121",name:"部件工厂",level:2,parentCode:"108"},
+            {code:"1080604",name:"钢珠轨车间",level:3,parentCode:"10806"},
+            {code:"122",name:"小五金车间",level:3,parentCode:"10807"},
+            {code:"1081102",name:"滑轮模具维修车间",level:4,parentCode:"108106"},
+            {code:"1080606",name:"综合管理部",level:3,parentCode:"10806"},
+            {code:"1080702",name:"收纳模具维修车间",level:4,parentCode:"108106"},
+            {code:"1080705",name:"收纳产品组",level:3,parentCode:"10720"},
+            {code:"1080707",name:"收纳品质",level:3,parentCode:"10908"},
+            {code:"1081101",name:"滑轮冲压车间",level:3,parentCode:"10811"},
+            {code:"1081103",name:"滑轮装配车间",level:3,parentCode:"10811"},
+            {code:"1081104",name:"滑轮研发部",level:2,parentCode:"107"},
+            {code:"1081106",name:"滑轮品质",level:3,parentCode:"10908"},
+            {code:"11301",name:"精益改善组",level:3,parentCode:"10810"},
+            {code:"1081108",name:"分条车间",level:3,parentCode:"121"},
+            {code:"1081109",name:"产品工艺组",level:3,parentCode:"10810"},
+            {code:"1081110",name:"制造工艺组",level:3,parentCode:"10810"},
+            {code:"1081111",name:"制造BOM组",level:3,parentCode:"10810"},
+            {code:"1081112",name:"小五金产品组",level:3,parentCode:"10720"},
+            {code:"11901",name:"销售支持部",level:2,parentCode:"119"},
+            {code:"11902",name:"KT业务部",level:2,parentCode:"119"},
+            {code:"10413",name:"西部经销大区",level:3,parentCode:"104"},
+            {code:"11903",name:"新零售业务部",level:2,parentCode:"119"},
+            {code:"11904",name:"线上业务部",level:2,parentCode:"119"},
+            {code:"123",name:"产品中心",level:1,parentCode:"0"},
+            {code:"1081113",name:"战略运营",level:2,parentCode:"112"},
+            {code:"108050101",name:"劳务派遣",level:4,parentCode:"1080501"},
+            {code:"108050201",name:"劳务派遣",level:4,parentCode:"1080502"},
+            {code:"108050301",name:"劳务派遣",level:4,parentCode:"1080503"},
+            {code:"108050401",name:"劳务派遣",level:4,parentCode:"1080504"},
+            {code:"108050501",name:"劳务派遣",level:4,parentCode:"1080505"},
+            {code:"108060101",name:"劳务派遣",level:4,parentCode:"1080601"},
+            {code:"108060301",name:"劳务派遣",level:4,parentCode:"1080603"},
+            {code:"108060201",name:"劳务派遣",level:4,parentCode:"1080602"},
+            {code:"108060401",name:"劳务派遣",level:4,parentCode:"1080604"},
+            {code:"108050601",name:"劳务派遣",level:4,parentCode:"1080506"},
+            {code:"108050801",name:"劳务派遣",level:4,parentCode:"1080508"},
+            {code:"108050901",name:"劳务派遣",level:4,parentCode:"1080509"},
+            {code:"108070101",name:"劳务派遣",level:4,parentCode:"1080701"},
+            {code:"108070301",name:"劳务派遣",level:4,parentCode:"1080703"},
+            {code:"108110101",name:"劳务派遣",level:4,parentCode:"1081101"},
+            {code:"108110301",name:"劳务派遣",level:4,parentCode:"1081103"},
+            {code:"108040101",name:"劳务派遣",level:4,parentCode:"10804"},
+            {code:"12301",name:"产品管理",level:2,parentCode:"123"},
+            {code:"12302",name:"工业设计",level:2,parentCode:"123"},
+            {code:"12303",name:"技术支持",level:2,parentCode:"123"},
+            {code:"11905",name:"整装业务部",level:2,parentCode:"119"},
+            {code:"11906",name:"卫浴业务部",level:2,parentCode:"119"},
+            {code:"11001",name:"体系管理",level:2,parentCode:"110"},
+            {code:"11002",name:"OEM管理",level:2,parentCode:"110"},
+            {code:"11003",name:"供方管理",level:2,parentCode:"110"},
+            {code:"11004",name:"采购执行",level:2,parentCode:"110"},
+            {code:"11803",name:"综合管理部",level:3,parentCode:"118"},
+            {code:"10714",name:"模具部",level:2,parentCode:"107"},
+            {code:"108106",name:"模具维修组",level:3,parentCode:"10802"},
+            {code:"1230101",name:"基础五金产品",level:3,parentCode:"12301"},
+            {code:"1230102",name:"收纳产品",level:3,parentCode:"12301"},
+            {code:"1230103",name:"滑轮产品",level:3,parentCode:"12301"},
+            {code:"1230104",name:"小五金产品",level:3,parentCode:"12301"},
+            {code:"1230201",name:"CMF设计",level:3,parentCode:"12302"},
+            {code:"1230202",name:"ID设计",level:3,parentCode:"12302"},
+            {code:"1230203",name:"手板制作",level:3,parentCode:"12302"},
+            {code:"1230301",name:"售前售后支持",level:3,parentCode:"12303"},
+            {code:"1230302",name:"安装动画制作",level:3,parentCode:"12303"},
+            {code:"11401",name:"产品管理",level:2,parentCode:"114"},
+            {code:"11402",name:"技术开发",level:2,parentCode:"114"},
+            {code:"11403",name:"运维支持",level:2,parentCode:"114"},
+            {code:"11106",name:"成本管理",level:2,parentCode:"111"},
+            {code:"1040401",name:"工程业务组",level:3,parentCode:"10404"},
+            {code:"1040402",name:"滑轮技术组",level:3,parentCode:"10404"},
+            {code:"1090201",name:"实验室",level:3,parentCode:"10902"},
+            {code:"1090202",name:"DQE",level:3,parentCode:"10902"},
+            {code:"1090101",name:"体系管理",level:3,parentCode:"10901"},
+            {code:"1090102",name:"SQE",level:3,parentCode:"10901"},
+            {code:"1090103",name:"市场品质",level:3,parentCode:"10901"},
+            {code:"10908",name:"品质保证",level:2,parentCode:"109"},
+            {code:"1090803",name:"滑轨品质",level:3,parentCode:"10908"},
+            {code:"10720",name:"收纳与小五金研发部",level:2,parentCode:"107"},
+            {code:"10710001",name:"翻门开发组",level:3,parentCode:"10710"},
+            {code:"108110302",name:"标准化管理组",level:3,parentCode:"10709"},
+            {code:"108110303",name:"TPM组",level:3,parentCode:"10802"},
+            {code:"1190301",name:"广佛业务组",level:3,parentCode:"11903"},
+            {code:"1190302",name:"中珠江业务",level:3,parentCode:"11903"},
+            {code:"1190303",name:"深莞惠业务",level:3,parentCode:"11903"},
+            {code:"1190401",name:"店铺运营组",level:3,parentCode:"11904"},
+            {code:"1190402",name:"视觉营销组",level:3,parentCode:"11904"},
+            {code:"1190403",name:"客户服务组",level:3,parentCode:"11904"},
+            {code:"108110304",name:"销管组",level:3,parentCode:"11901"},
+            {code:"10601",name:"品牌与推广组",level:3,parentCode:"106"},
+            {code:"10602",name:"媒介传播组",level:3,parentCode:"106"},
+            {code:"10603",name:"视觉支持组",level:3,parentCode:"106"},
+            {code:"10604",name:"空间设计组",level:3,parentCode:"106"},
+            {code:"1090806",name:"注塑品质",level:3,parentCode:"10908"},
+            {code:"10810605",name:"注塑模具维修",level:4,parentCode:"108106"},
+            {code:"1080510",name:"喷涂车间",level:3,parentCode:"121"},
+            {code:"11206",name:"其他",level:2,parentCode:"112"},
+            {code:"1030106",name:"待分配组",level:3,parentCode:"10301"}
+        ];
+
+        function buildTree(data, parentCode) {
+            const children = data.filter(d => d.parentCode === parentCode);
+            if (children.length === 0) return null;
+            return children.map(child => ({
+                ...child,
+                children: buildTree(data, child.code)
+            }));
+        }
+
+        function renderTree(nodes, container) {
+            if (!nodes || nodes.length === 0) return;
+            const ul = document.createElement('ul');
+            nodes.forEach(node => {
+                const li = document.createElement('li');
+                const div = document.createElement('div');
+                div.className = `node level-${node.level}`;
+                if (node.level === 0) div.classList.add('root');
+                div.innerHTML = `${node.name}<span class="dept-code">${node.code}</span>`;
+                if (node.children && node.children.length > 0) {
+                    div.classList.add('has-children');
+                    div.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        div.classList.toggle('collapsed');
+                        const subUl = li.querySelector('ul');
+                        if (subUl) subUl.style.display = div.classList.contains('collapsed') ? 'none' : 'flex';
+                    });
+                }
+                li.appendChild(div);
+                if (node.children && node.children.length > 0) {
+                    renderTree(node.children, li);
+                }
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        }
+
+        const treeData = buildTree(deptData, "");
+        const treeRoot = document.getElementById('tree-root');
+        renderTree(treeData, treeRoot);
+
+        let scale = 0.6;
+        let panning = false;
+        let pointX = 0;
+        let pointY = 0;
+        let startX = 0;
+        let startY = 0;
+        const wrapper = document.getElementById('tree-wrapper');
+        const container = document.getElementById('container');
+
+        function updateTransform() {
+            wrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+
+        function zoomIn() {
+            scale = Math.min(scale * 1.2, 3);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            scale = Math.max(scale / 1.2, 0.2);
+            updateTransform();
+        }
+
+        function resetView() {
+            scale = 0.6;
+            pointX = 0;
+            pointY = 0;
+            updateTransform();
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.node.collapsed').forEach(n => {
+                n.classList.remove('collapsed');
+                const ul = n.parentElement.querySelector('ul');
+                if (ul) ul.style.display = 'flex';
+            });
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.node.has-children').forEach(n => {
+                if (!n.classList.contains('root')) {
+                    n.classList.add('collapsed');
+                    const ul = n.parentElement.querySelector('ul');
+                    if (ul) ul.style.display = 'none';
+                }
+            });
+        }
+
+        container.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.node')) return;
+            panning = true;
+            startX = e.clientX - pointX;
+            startY = e.clientY - pointY;
+            container.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!panning) return;
+            e.preventDefault();
+            pointX = e.clientX - startX;
+            pointY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            panning = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            scale = Math.max(0.2, Math.min(3, scale * delta));
+            updateTransform();
+        });
+
+        const treeRect = wrapper.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        pointX = (containerRect.width - treeRect.width * scale) / 2;
+        pointY = 20;
+        updateTransform();
+    </script>
+</body>
+</html>
